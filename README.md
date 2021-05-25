@@ -1,3 +1,3 @@
 # TicTacToe
-Projects using Java
-Exercises completed by me through mooc's Java Programming II course
+A simple TicTacToe game
+It ends when all turns are used up or player X or O wins
