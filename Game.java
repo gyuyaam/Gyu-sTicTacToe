@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import ticTacToe.logic.XOXO;
 
 /**
@@ -21,40 +20,22 @@ import ticTacToe.logic.XOXO;
  * @author gyukim
  */
 public class Game {
-    private ArrayList<Button> buttons;
-    private ArrayList<String> list;
-    private XOXO xo;
-    private Label turn;
+    private final ArrayList<Button> buttons;
+    private StringBuilder xs;
+    private StringBuilder os;
+    private final XOXO xo;
+    private final Label turn;
+    private String winner;
     
     public Game(XOXO xo) {
         this.buttons = new ArrayList<>();
-        this.list = new ArrayList<>();
         this.xo = xo;
-        this.turn = new Label("Turn: " + this.xo.player());
-        this.turn.setFont(Font.font("Courier New", 40));
-        
-        for(int i = 0; i < 9; i++) {
-            this.buttons.add(new Button(" "));
-        }
-        
-        for(Button b:this.buttons) {
-            b.setFont(Font.font("Courier New", 40));
-            b.setOnAction((event) -> {
-                b.setText(this.xo.player());
-                b.setDisable(true);
-                this.list.add(this.xo.player());
-                this.xo.play();
-                this.turn.setText("Turn: " + this.xo.player());
-                
-                if(thereIsWin()) {
-                    this.turn.setText("The end!");
-                    for(Button v:this.buttons) {
-                        v.setDisable(true);
-                    }
-                }       
-                
-            });
-        }
+        //
+        this.turn = new Label();
+        this.winner = "";
+        //
+        this.xs = new StringBuilder();
+        this.os = new StringBuilder();
     }
     
     public Parent getView() {
@@ -65,12 +46,45 @@ public class Game {
         layout.setVgap(10);
         layout.setPadding(new Insets(10, 10, 10, 10));
         
-        int i = 0;
+        this.turn.setText("Turn: " + this.xo.player());
+        
+        for(int i = 0; i < 9; i++) {
+            this.buttons.add(new Button(" "));
+        }
+        int help = 0;
         for(int row = 0; row < 3; row++) {
             for(int column = 0; column < 3; column++) {
-                layout.add(this.buttons.get(i), row, column);
-                i++;
+                layout.add(this.buttons.get(help), row, column);
+                help++;
             }
+        }
+        
+        for(Button button:this.buttons) {
+            button.setFont(Font.font("Courier New", 40));
+            button.setOnAction((event) -> { 
+                button.setText(this.xo.player());
+                
+                if(this.xo.player().equals("X")) {
+                    this.xs.append(String.valueOf(layout.getChildren().indexOf(button)));
+                }
+                if(this.xo.player().equals("O")) {
+                    this.os.append(String.valueOf(layout.getChildren().indexOf(button)));
+                }
+                
+                this.xo.play();
+                button.setDisable(true);
+                
+                if(this.xo.turn() > 8) {
+                    this.turn.setText("The end! No one wins D:" + this.xs + this.os);
+                } else if(this.thereIsWin()) {
+                    this.turn.setText("The end! " + this.winner + " wins! :D ");
+                    for(Button b:this.buttons) {
+                        b.setDisable(true);
+                    }
+                } else {
+                    this.turn.setText("Turn: " + this.xo.player()); 
+                }
+            });
         }
         
         finalLayout.setTop(this.turn);
@@ -80,31 +94,28 @@ public class Game {
     }
     
     private boolean thereIsWin() {
-        StringBuilder x = new StringBuilder();
-        StringBuilder o = new StringBuilder();
-        int helper = 0;
-        
-        for(String player:this.list) {
-            if(player.equals("X")) {
-                x.append(String.valueOf(helper));
-            } else if(player.equals("O")) {
-                o.append(String.valueOf(helper));
-            }
-            helper++;
-        }
-        
         ArrayList<String> possibleWins = new ArrayList<>();
-        possibleWins.add("012");
-        possibleWins.add("345");
-        possibleWins.add("678");
-        possibleWins.add("036");
-        possibleWins.add("147");
-        possibleWins.add("258");
-        possibleWins.add("048");
-        possibleWins.add("246");
+        possibleWins.add("0,1,2");
+        possibleWins.add("3,4,5");
+        possibleWins.add("6,7,8");
+        possibleWins.add("0,3,6");
+        possibleWins.add("1,4,7");
+        possibleWins.add("2,5,8");
+        possibleWins.add("0,4,8");
+        possibleWins.add("2,4,6");
         
         for(String win:possibleWins) {
-            if(x.toString().contains(win) || o.toString().contains(win)) {
+            String[] parts = win.split(",");
+            if(this.xs.toString().contains(parts[0]) && 
+                this.xs.toString().contains(parts[1]) && 
+                this.xs.toString().contains(parts[2])) {
+                this.winner = "X";
+                return true; 
+            }
+            if(this.os.toString().contains(parts[0]) && 
+                this.os.toString().contains(parts[1]) && 
+                this.os.toString().contains(parts[2])) {
+                this.winner = "O";    
                 return true;
             }
         }
